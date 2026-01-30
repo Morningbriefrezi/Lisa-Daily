@@ -1,0 +1,30 @@
+name: Lisa Proactive Daily Assistant
+
+on:
+  schedule:
+    # Tbilisi = UTC+4
+    - cron: "0 5 * * *"   # 09:00 Tasks
+    - cron: "0 8 * * *"   # 12:00 FB Posts
+    - cron: "0 9 * * *"   # 13:00 Business tricks
+    - cron: "0 11 * * *"  # 15:00 New ideas
+    - cron: "0 13 * * *"  # 17:00 Product ideas
+    - cron: "0 15 * * *"  # 19:00 Motivation
+    - cron: "0 17 * * *"  # 21:00 Good night
+  workflow_dispatch:
+
+jobs:
+  lisa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
