@@ -189,27 +189,54 @@ def generate(prompt: str):
 # ---------------- TELEGRAM ---------------- #
 
 def send_telegram(message: str):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("❌ Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID")
+        return
+
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": message,
-        "disable_web_page_preview": True
-    }
+    # Telegram safe max length
+    MAX_LEN = 4000
 
-    requests.post(url, json=payload, timeout=40)
+    parts = [message[i:i+MAX_LEN] for i in range(0, len(message), MAX_LEN)]
+
+    for index, part in enumerate(parts, start=1):
+        payload = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": part,
+            "disable_web_page_preview": True
+        }
+
+        r = requests.post(url, json=payload, timeout=40)
+
+        print(f"Telegram part {index}: {r.status_code}")
+        if r.status_code != 200:
+            print("Telegram error:", r.text)
 
 
 # ---------------- MAIN ---------------- #
 
 def main():
+    print("Running ASTROMAN CEO mode...")
+    print("MODE:", MODE)
+
     prompt = build_prompt(MODE)
+    print("Prompt created.")
+
     text = generate(prompt)
+
+    if not text or len(text.strip()) == 0:
+        text = "⚠️ AI returned empty response."
+
+    print("AI response length:", len(text))
 
     today = datetime.now().strftime("%Y-%m-%d")
     title = "🚀 ASTROMAN CEO დილის ბრიფინგი" if MODE == "morning" else "🌙 ASTROMAN CEO ღამის ანალიზი"
 
-    send_telegram(f"{title} — {today}\n\n{text}")
+    final_message = f"{title} — {today}\n\n{text}"
+
+    send_telegram(final_message)
+
 
 
 if __name__ == "__main__":
